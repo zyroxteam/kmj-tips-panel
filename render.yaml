@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: kmj-tips-panel
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+      - key: TRUST_PROXY
+        value: 1
+      - key: NODE_VERSION
+        value: 20
