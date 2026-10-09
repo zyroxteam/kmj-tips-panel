@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMJ TIPS — Admin Panel</title>
+<style>
+/* ============ KMJ TIPS single-file panel ============ */
+:root{
+  --bg:#f4f6fb; --glass:rgba(255,255,255,.62); --glass-strong:rgba(255,255,255,.88);
+  --border:rgba(255,255,255,.7); --border-soft:rgba(15,23,42,.08);
+  --text:#0f172a; --muted:#64748b; --accent:#4f46e5;
+  --accent-grad:linear-gradient(135deg,#4f46e5,#7c3aed);
+  --green:#16a34a; --amber:#d97706; --red:#dc2626; --blue:#2563eb;
+  --shadow:0 8px 32px rgba(31,38,135,.10); --shadow-lg:0 18px 50px rgba(31,38,135,.16);
+  --radius:18px;
+}
+[data-theme="dark"]{
+  --bg:#0b0f1a; --glass:rgba(23,30,52,.62); --glass-strong:rgba(23,30,52,.9);
+  --border:rgba(255,255,255,.08); --border-soft:rgba(255,255,255,.10);
+  --text:#e8edf7; --muted:#94a3b8;
+  --shadow:0 8px 32px rgba(0,0,0,.35); --shadow-lg:0 18px 50px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+  background:radial-gradient(1200px 600px at 10% -10%,#eef2ff,transparent),
+             radial-gradient(1000px 700px at 110% 10%,#e0e7ff33,transparent),var(--bg);
+  color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+[data-theme="dark"] body{background:radial-gradient(1200px 600px at 10% -10%,#111a30,transparent),var(--bg)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:248px;flex-shrink:0;background:var(--glass);backdrop-filter:blur(22px) saturate(1.4);
+  -webkit-backdrop-filter:blur(22px) saturate(1.4);border-right:1px solid var(--border);
+  padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px;z-index:50}
+.brand{display:flex;align-items:center;gap:12px;padding:6px 8px 18px}
+.logo{width:46px;height:46px;border-radius:14px;flex-shrink:0;background:var(--accent-grad);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;
+  box-shadow:0 8px 20px rgba(79,70,229,.35);transform:perspective(200px) rotateY(-8deg)}
+.brand h1{font-size:19px;margin:0;letter-spacing:.5px}
+.brand small{color:var(--muted);font-size:11px;letter-spacing:2px}
+.nav-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--muted);
+  text-decoration:none;font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;
+  background:none;width:100%;transition:all .2s;font-family:inherit}
+.nav-link .ico{font-size:18px;width:24px;text-align:center}
+.nav-link:hover{background:var(--glass-strong);color:var(--text)}
+.nav-link.active{background:var(--accent-grad);color:#fff;box-shadow:0 8px 20px rgba(79,70,229,.30)}
+.sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.main{flex:1;padding:26px;max-width:1180px;width:100%;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px}
+.topbar h2{margin:0;font-size:24px}
+.topbar p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.hamburger{display:none}
+.glass{background:var(--glass);backdrop-filter:blur(20px) saturate(1.4);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);transition:transform .25s,box-shadow .25s}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+.stat-card{padding:18px;position:relative;overflow:hidden;animation:cardIn .5s cubic-bezier(.2,.9,.3,1.1) backwards}
+.stat-card:nth-child(2){animation-delay:.05s}.stat-card:nth-child(3){animation-delay:.1s}
+.stat-card:nth-child(4){animation-delay:.15s}.stat-card:nth-child(5){animation-delay:.2s}
+.stat-card:nth-child(6){animation-delay:.25s}
+@keyframes cardIn{from{transform:translateY(18px) scale(.97);opacity:0}}
+.stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent-grad);opacity:.85}
+.stat-card.c-green::before{background:linear-gradient(135deg,#16a34a,#4ade80)}
+.stat-card.c-amber::before{background:linear-gradient(135deg,#d97706,#fbbf24)}
+.stat-card.c-red::before{background:linear-gradient(135deg,#dc2626,#f87171)}
+.stat-card.c-blue::before{background:linear-gradient(135deg,#2563eb,#60a5fa)}
+.stat-card.c-purple::before{background:var(--accent-grad)}
+.stat-num{font-size:30px;font-weight:800;margin:2px 0}
+.stat-label{color:var(--muted);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.stat-ico{font-size:22px}
+.panel{padding:20px;margin-bottom:18px;animation:cardIn .45s cubic-bezier(.2,.9,.3,1.05) backwards}
+.panel h3{margin:0 0 14px;font-size:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+/* ---------- 4D curved buttons ---------- */
+.btn{border:none;border-radius:16px;padding:12px 20px;font-weight:800;font-size:14px;cursor:pointer;
+  color:#fff;font-family:inherit;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#7b7bf5 0%,#5b5bf0 35%,#4f46e5 60%,#4338ca 100%);
+  box-shadow:0 5px 0 #2e2a8f,0 12px 24px rgba(79,70,229,.35),
+    inset 0 2px 3px rgba(255,255,255,.45),inset 0 -4px 8px rgba(0,0,0,.22);
+  text-shadow:0 1px 2px rgba(0,0,0,.25);
+  transition:transform .12s,box-shadow .12s,filter .2s;
+  display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn::after{content:'';position:absolute;top:0;left:-80%;width:45%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:skewX(-20deg);transition:left .55s ease;pointer-events:none}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px);
+  box-shadow:0 6px 0 #2e2a8f,0 16px 30px rgba(79,70,229,.42),
+  inset 0 2px 3px rgba(255,255,255,.45),inset 0 -4px 8px rgba(0,0,0,.22)}
+.btn:hover::after{left:135%}
+.btn:active{transform:translateY(4px);
+  box-shadow:0 1px 0 #2e2a8f,0 4px 10px rgba(79,70,229,.3),inset 0 2px 6px rgba(0,0,0,.3)}
+.btn.ghost{background:linear-gradient(180deg,#ffffff 0%,#eef1f8 100%);color:var(--text);
+  text-shadow:none;border:1px solid var(--border-soft);
+  box-shadow:0 4px 0 rgba(15,23,42,.14),0 8px 18px rgba(31,38,135,.12),
+  inset 0 2px 2px rgba(255,255,255,.9),inset 0 -3px 6px rgba(15,23,42,.06)}
+.btn.ghost:hover{box-shadow:0 5px 0 rgba(15,23,42,.14),0 10px 22px rgba(31,38,135,.14),
+  inset 0 2px 2px rgba(255,255,255,.9),inset 0 -3px 6px rgba(15,23,42,.06)}
+.btn.ghost:active{transform:translateY(3px);
+  box-shadow:0 1px 0 rgba(15,23,42,.14),inset 0 2px 5px rgba(15,23,42,.12)}
+[data-theme="dark"] .btn.ghost{background:linear-gradient(180deg,#2b3554 0%,#1b2338 100%)}
+.btn.danger{background:linear-gradient(180deg,#f87171 0%,#ef4444 40%,#dc2626 70%,#b91c1c 100%);
+  box-shadow:0 5px 0 #7f1d1d,0 12px 24px rgba(220,38,38,.35),
+  inset 0 2px 3px rgba(255,255,255,.4),inset 0 -4px 8px rgba(0,0,0,.22)}
+.btn.danger:active{transform:translateY(4px);
+  box-shadow:0 1px 0 #7f1d1d,0 4px 10px rgba(220,38,38,.3),inset 0 2px 6px rgba(0,0,0,.3)}
+.btn.small{padding:8px 14px;font-size:12.5px;border-radius:12px;
+  box-shadow:0 3px 0 #2e2a8f,0 8px 16px rgba(79,70,229,.3),
+  inset 0 2px 2px rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.2)}
+.btn.small:active{transform:translateY(2px);box-shadow:0 1px 0 #2e2a8f}
+.btn.ghost.small{box-shadow:0 3px 0 rgba(15,23,42,.14),0 6px 14px rgba(31,38,135,.1),
+  inset 0 2px 2px rgba(255,255,255,.9)}
+.btn.danger.small{box-shadow:0 3px 0 #7f1d1d,0 8px 16px rgba(220,38,38,.3),
+  inset 0 2px 2px rgba(255,255,255,.4)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none;filter:saturate(.7)}
+.btn .spinner{width:16px;height:16px;border-radius:50%;flex-shrink:0;
+  border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;
+  animation:spin .7s linear infinite;display:inline-block}
+.btn.ghost .spinner{border-color:rgba(15,23,42,.2);border-top-color:var(--accent)}
+.btn.loading{pointer-events:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ---------- top page progress bar ---------- */
+#pageProgress{position:fixed;top:0;left:0;height:4px;width:0%;z-index:300;opacity:0;
+  background:linear-gradient(90deg,#4f46e5,#a855f7,#ec4899,#4f46e5);background-size:200% 100%;
+  border-radius:0 4px 4px 0;box-shadow:0 0 14px rgba(139,92,246,.8);
+  transition:width .25s ease,opacity .3s;animation:progSlide 1.2s linear infinite}
+@keyframes progSlide{to{background-position:200% 0}}
+/* ---------- animated background blobs ---------- */
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);z-index:0;opacity:.55;pointer-events:none}
+.blob1{width:440px;height:440px;background:#c7d2fe;top:-130px;left:-130px;animation:drift1 18s ease-in-out infinite alternate}
+.blob2{width:400px;height:400px;background:#f0abfc;bottom:-150px;right:-110px;animation:drift2 24s ease-in-out infinite alternate}
+[data-theme="dark"] .blob1{background:#312e81;opacity:.4}
+[data-theme="dark"] .blob2{background:#701a75;opacity:.35}
+@keyframes drift1{to{transform:translate(70px,50px) scale(1.18)}}
+@keyframes drift2{to{transform:translate(-60px,-70px) scale(1.12)}}
+.app,.login-wrap{position:relative;z-index:1}
+/* ---------- modal progress bar ---------- */
+.meter{height:10px;border-radius:8px;background:rgba(127,140,180,.18);overflow:hidden;margin-top:12px;display:none}
+.meter.show{display:block}
+.meter>i{display:block;height:100%;width:0%;border-radius:8px;
+  background:linear-gradient(90deg,#4f46e5,#a855f7);box-shadow:0 0 10px rgba(139,92,246,.7);
+  transition:width .3s ease}
+.icon-btn{border:1px solid var(--border-soft);background:var(--glass-strong);border-radius:12px;
+  width:42px;height:42px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--text);transition:transform .15s}
+.icon-btn:hover{transform:translateY(-2px)}
+input,select,textarea{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border-soft);
+  background:var(--glass-strong);color:var(--text);font-size:14px;font-family:inherit;outline:none;
+  transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.15)}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.5px}
+textarea{resize:vertical;min-height:90px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check-row{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:14px;font-weight:600}
+.check-row input{width:auto}
+.table-wrap{overflow-x:auto;border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-size:11.5px;text-transform:uppercase;
+  letter-spacing:.6px;border-bottom:1px solid var(--border-soft);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{animation:rowIn .3s backwards}
+tbody tr:nth-child(2){animation-delay:.03s}tbody tr:nth-child(3){animation-delay:.06s}
+tbody tr:nth-child(4){animation-delay:.09s}tbody tr:nth-child(5){animation-delay:.12s}
+@keyframes rowIn{from{opacity:0;transform:translateX(-8px)}}
+tr:hover td{background:rgba(127,140,180,.06)}
+.key-mono{font-family:Consolas,monospace;font-size:12.5px;background:rgba(79,70,229,.08);
+  padding:5px 9px;border-radius:8px;white-space:nowrap}
+.badge{display:inline-block;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.4px}
+.badge.active{background:#dcfce7;color:#166534}.badge.used{background:#dbeafe;color:#1d4ed8}
+.badge.expired{background:#fef3c7;color:#92400e}.badge.revoked{background:#fee2e2;color:#991b1b}
+[data-theme="dark"] .badge.active{background:#14532d;color:#bbf7d0}
+[data-theme="dark"] .badge.used{background:#1e3a8a;color:#bfdbfe}
+[data-theme="dark"] .badge.expired{background:#78350f;color:#fde68a}
+[data-theme="dark"] .badge.revoked{background:#7f1d1d;color:#fecaca}
+.row-actions{display:flex;gap:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.toolbar input,.toolbar select{width:auto}
+.toolbar .spacer{flex:1}
+.search-input{min-width:200px}
+/* ---------- modal ---------- */
+.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:100;padding:18px}
+.modal-back.open{display:flex;animation:fadeIn .2s}
+.modal{width:100%;max-width:440px;padding:26px;background:var(--glass-strong);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow-lg);
+  animation:popIn .28s cubic-bezier(.2,.9,.3,1.2);max-height:90vh;overflow-y:auto}
+.modal h3{margin:0 0 6px}.modal .sub{color:var(--muted);font-size:13px;margin:0 0 8px}
+@keyframes popIn{from{transform:scale(.92) translateY(10px);opacity:0}}
+@keyframes fadeIn{from{opacity:0}}
+/* ---------- modern animated toasts ---------- */
+.toast-stack{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;
+  display:flex;flex-direction:column;gap:10px;align-items:center;width:max-content;max-width:94vw}
+.toast{position:relative;display:flex;align-items:center;gap:12px;overflow:hidden;
+  background:var(--glass-strong);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:16px;padding:13px 18px 15px;box-shadow:var(--shadow-lg);
+  font-size:14px;font-weight:600;max-width:94vw;cursor:pointer;
+  animation:toastIn .38s cubic-bezier(.2,.9,.25,1.2)}
+.toast.hide{animation:toastOut .3s ease forwards}
+.toast .t-ico{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;
+  align-items:center;justify-content:center;font-size:16px;color:#fff;
+  animation:icoPop .45s cubic-bezier(.2,.9,.3,1.4) .08s backwards}
+.toast.ok .t-ico{background:linear-gradient(135deg,#16a34a,#4ade80);box-shadow:0 4px 12px rgba(22,163,74,.4)}
+.toast.err .t-ico{background:linear-gradient(135deg,#dc2626,#f87171);box-shadow:0 4px 12px rgba(220,38,38,.4)}
+.toast.info .t-ico{background:linear-gradient(135deg,#2563eb,#60a5fa);box-shadow:0 4px 12px rgba(37,99,235,.4)}
+.toast .t-bar{position:absolute;bottom:0;left:0;height:3px;width:100%;
+  transform-origin:left;animation:tBar 3.4s linear forwards}
+.toast.ok .t-bar{background:linear-gradient(90deg,#16a34a,#4ade80)}
+.toast.err .t-bar{background:linear-gradient(90deg,#dc2626,#f87171)}
+.toast.info .t-bar{background:linear-gradient(90deg,#2563eb,#60a5fa)}
+@keyframes toastIn{from{transform:translateY(24px) scale(.94);opacity:0}}
+@keyframes toastOut{to{transform:translateY(14px) scale(.95);opacity:0}}
+@keyframes icoPop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes tBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+/* ---------- login ---------- */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{width:100%;max-width:400px;padding:34px 30px;text-align:center;animation:cardIn .5s cubic-bezier(.2,.9,.3,1.1)}
+.login-card .logo{width:64px;height:64px;font-size:28px;margin:0 auto 14px;transform:perspective(240px) rotateY(-10deg)}
+.login-card h1{margin:0;font-size:26px;letter-spacing:1px}
+.login-card .tag{color:var(--muted);font-size:12px;letter-spacing:3px;margin:4px 0 22px}
+.login-card form{text-align:left}
+.login-card .btn{width:100%;margin-top:16px}
+.link-btn{background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-size:13px;margin-top:14px;font-family:inherit}
+/* ---------- misc ---------- */
+.json-preview{background:#0f172a;color:#a5f3fc;border-radius:12px;padding:16px;
+  font-family:Consolas,monospace;font-size:12.5px;overflow-x:auto;white-space:pre;line-height:1.6}
+.empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
+.pagination{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;font-size:13px;color:var(--muted)}
+canvas.chart{max-height:280px}
+.activity-item{display:flex;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--border-soft);font-size:13.5px}
+.activity-item:last-child{border-bottom:none}
+.activity-item .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.activity-item small{color:var(--muted);margin-left:auto;white-space:nowrap}
+.view{animation:fadeIn .25s}
+@media (max-width:860px){
+  .grid-2{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-105%);transition:transform .28s ease;box-shadow:var(--shadow-lg)}
+  .sidebar.open{transform:translateX(0)}
+  .hamburger{display:inline-flex}
+  .main{padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40;display:none}
+  .scrim.show{display:block}
+}
+.scrim{display:none}
+</style>
+<script>
+try{
+  if(localStorage.getItem('kmj_theme')==='dark'||
+    (!localStorage.getItem('kmj_theme')&&matchMedia('(prefers-color-scheme: dark)').matches))
+    document.documentElement.setAttribute('data-theme','dark');
+}catch(e){}
+</script>
+</head>
+<body>
+<div id="pageProgress"></div>
+<div class="bg-blob blob1"></div>
+<div class="bg-blob blob2"></div>
+
+<!-- ================= LOGIN VIEW ================= -->
+<div id="loginView" class="view" style="display:none">
+  <div class="login-wrap">
+    <div class="login-card glass">
+      <div class="logo">K</div>
+      <h1>KMJ TIPS</h1>
+      <div class="tag">ADMIN PANEL</div>
+      <form id="loginForm">
+        <label for="username">Username</label>
+        <input id="username" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button class="btn" type="submit" id="loginBtn">Sign In</button>
+      </form>
+      <form id="setupForm" style="display:none">
+        <p style="color:var(--muted);font-size:13px">First run — create the admin account.</p>
+        <label for="su">Username</label><input id="su" required>
+        <label for="sp">Password</label><input id="sp" type="password" required>
+        <button class="btn" type="submit" id="setupBtn">Create Admin</button>
+      </form>
+      <button class="link-btn" id="toggleSetup">First run? Create admin account</button>
+      <div style="margin-top:14px"><button class="icon-btn" id="themeBtnLogin" title="Toggle theme">🌙</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP VIEW ================= -->
+<div id="appView" class="view" style="display:none">
+<div class="scrim" id="scrim"></div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">K</div><div><h1>KMJ TIPS</h1><small>ADMIN PANEL</small></div></div>
+    <button class="nav-link active" data-view="dashboard"><span class="ico">📊</span>Dashboard</button>
+    <button class="nav-link" data-view="keys"><span class="ico">🔑</span>Keys</button>
+    <button class="nav-link" data-view="updates"><span class="ico">🚀</span>App Updates</button>
+    <button class="nav-link" data-view="settings"><span class="ico">⚙️</span>Settings</button>
+    <div class="sidebar-foot">
+      <button class="nav-link" id="themeToggle"><span class="ico">🌙</span><span id="themeLabel">Dark Mode</span></button>
+      <button class="nav-link" id="soundToggle"><span class="ico">🔊</span><span id="soundLabel">Sound On</span></button>
+      <button class="nav-link" id="logoutBtn"><span class="ico">🚪</span>Logout (<span id="userLabel"></span>)</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="icon-btn hamburger" id="hamburger">☰</button>
+        <div><h2 id="viewTitle">Dashboard</h2><p id="viewSub">Overview of keys &amp; app updates</p></div>
+      </div>
+      <div class="topbar-actions"></div>
+    </div>
+
+    <section id="view-dashboard">
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="grid-2">
+        <div class="panel glass"><h3>📈 Key Activity (14 days)</h3><canvas class="chart" id="activityChart"></canvas></div>
+        <div class="panel glass"><h3>📦 Current App Version</h3><div id="versionCard"></div>
+          <h3 style="margin-top:18px">🕘 Recent Activity</h3><div id="recentList"></div></div>
+      </div>
+    </section>
+
+    <section id="view-keys" style="display:none">
+      <div class="panel glass">
+        <div class="toolbar">
+          <input class="search-input" id="keySearch" placeholder="🔍 Search key or label…">
+          <select id="keyFilter">
+            <option value="">All statuses</option><option value="active">Active</option>
+            <option value="used">Used</option><option value="expired">Expired</option>
+            <option value="revoked">Revoked</option>
+          </select>
+          <div class="spacer"></div>
+          <button class="btn ghost small" id="exportBtn">⬇ Export CSV</button>
+          <button class="btn small" id="genBtn">＋ Generate Keys</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Key</th><th>Label</th><th>Status</th><th>Expiry</th><th>Uses</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="keyRows"></tbody>
+        </table></div>
+        <div class="empty" id="keyEmpty" style="display:none">No keys found.</div>
+        <div class="pagination">
+          <button class="btn ghost small" id="prevPage">‹ Prev</button><span id="pageInfo"></span>
+          <button class="btn ghost small" id="nextPage">Next ›</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-updates" style="display:none">
+      <div class="grid-2">
+        <div class="panel glass"><h3>🚀 Update Release</h3>
+          <div class="form-row">
+            <div><label>Version name</label><input id="u_version_name" placeholder="1.2.0"></div>
+            <div><label>Version code</label><input id="u_version_code" type="number" min="1" placeholder="12"></div>
+          </div>
+          <label>Update title</label><input id="u_title" placeholder="New Update Available">
+          <label>Changelog</label><textarea id="u_changelog" placeholder="Bug fixes and improvements…"></textarea>
+          <label>APK download URL</label><input id="u_download_url" placeholder="https://example.com/app.apk">
+          <label>Website / update page URL (optional)</label><input id="u_website_url" placeholder="https://example.com/update">
+          <div class="check-row"><input type="checkbox" id="u_force"><span>🔒 Force update (users cannot skip)</span></div>
+          <button class="btn" id="saveUpdateBtn" style="margin-top:16px;width:100%">💾 Publish Update</button>
+        </div>
+        <div class="panel glass"><h3>📡 Live API Response</h3>
+          <p style="color:var(--muted);font-size:13px;margin:0 0 12px">This is exactly what <code>GET /api/update</code> returns to the app:</p>
+          <div class="json-preview" id="updatePreview">{}</div>
+          <button class="btn ghost small" id="copyJsonBtn" style="margin-top:12px">📋 Copy JSON</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-settings" style="display:none">
+      <div class="panel glass" style="max-width:520px"><h3>🔐 Change Password</h3>
+        <label>Current password</label><input id="pw_cur" type="password">
+        <label>New password</label><input id="pw_new" type="password">
+        <button class="btn" id="pwBtn" style="margin-top:14px">Update Password</button>
+      </div>
+      <div class="panel glass" style="max-width:520px"><h3>ℹ️ About</h3>
+        <p style="color:var(--muted);font-size:14px;line-height:1.7">KMJ TIPS panel v1.0 — single-file build.
+        Keep <code>JWT_SECRET</code> private and always serve over HTTPS in production.</p>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+
+<!-- generate modal -->
+<div class="modal-back" id="genModal">
+  <div class="modal"><h3>🔑 Generate Keys</h3>
+    <p class="sub">Secure random keys (crypto RNG). Uniqueness enforced by the database.</p>
+    <div class="form-row">
+      <div><label>Prefix</label><input id="g_prefix" value="KMJ" maxlength="12"></div>
+      <div><label>Count (1–100)</label><input id="g_count" type="number" value="1" min="1" max="100"></div>
+    </div>
+    <label>Label (optional)</label><input id="g_label" placeholder="e.g. Promo batch" maxlength="64">
+    <label>Expiry</label>
+    <select id="g_expiry"><option value="1">1 Day</option><option value="7" selected>7 Days</option>
+      <option value="30">30 Days</option><option value="lifetime">Lifetime</option></select>
+    <div class="check-row"><input type="checkbox" id="g_single"><span>Single-use (binds to first device)</span></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn ghost" id="genCancel" style="flex:1">Cancel</button>
+      <button class="btn" id="genConfirm" style="flex:1">Generate</button>
+    </div>
+    <div class="meter" id="genMeter"><i></i></div>
+    <div id="genResult" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toasts"></div>
+
+<!--CHARTJS_INLINE-->
+
+<script>
+/* ================= KMJ TIPS single-file app ================= */
+const $=(id)=>document.getElementById(id);
+const token=()=>sessionStorage.getItem('kmj_token');
+const ICONS={ok:'✓',err:'✕',info:'ℹ'};
+
+/* ---- sound engine (Web Audio synth — zero audio files) ---- */
+const sfx=(()=>{
+  let ctx=null,muted=false;
+  try{muted=localStorage.getItem('kmj_mute')==='1';}catch(e){}
+  function ac(){
+    if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended')ctx.resume();
+    return ctx;
+  }
+  function tone(freq,dur,type,vol,when){
+    if(muted)return;
+    try{
+      const c=ac(),o=c.createOscillator(),g=c.createGain(),t=c.currentTime+(when||0);
+      o.type=type||'sine';o.frequency.setValueAtTime(freq,t);
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(vol||0.12,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.05);
+    }catch(e){}
+  }
+  return{
+    click(){tone(640,0.07,'triangle',0.1);},
+    toggle(){tone(440,0.07,'sine',0.1);tone(680,0.08,'sine',0.09,0.06);},
+    success(){tone(523,0.12,'sine',0.13);tone(784,0.2,'sine',0.13,0.1);},
+    error(){tone(210,0.18,'sawtooth',0.09);tone(150,0.24,'sawtooth',0.07,0.09);},
+    pop(){tone(920,0.05,'square',0.05);},
+    isMuted(){return muted;},
+    toggleMute(){muted=!muted;try{localStorage.setItem('kmj_mute',muted?'1':'0');}catch(e){}return muted;}
+  };
+})();
+
+/* ---- top progress bar ---- */
+let progTimer=null;
+function progStart(){
+  const p=$('pageProgress');p.style.opacity='1';p.style.width='10%';
+  clearInterval(progTimer);let w=10;
+  progTimer=setInterval(()=>{w=Math.min(w+4+Math.random()*12,90);p.style.width=w+'%';},200);
+}
+function progDone(){
+  const p=$('pageProgress');clearInterval(progTimer);p.style.width='100%';
+  setTimeout(()=>{p.style.opacity='0';setTimeout(()=>{p.style.width='0%';},350);},250);
+}
+
+/* ---- button busy state ---- */
+function btnBusy(btn,on,label){
+  if(!btn)return;
+  if(on){btn.dataset.html=btn.innerHTML;btn.classList.add('loading');btn.disabled=true;
+    btn.innerHTML='<span class="spinner"></span> '+(label||'Working…');}
+  else{btn.classList.remove('loading');btn.disabled=false;
+    if(btn.dataset.html)btn.innerHTML=btn.dataset.html;}
+}
+
+/* ---- count-up animation ---- */
+function countUp(el,to){
+  to=parseInt(to,10);if(!isFinite(to))return;
+  const dur=900,t0=performance.now();
+  (function f(t){const p=Math.min(((t||t0)-t0)/dur,1),e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(to*e).toLocaleString('en-IN');
+    if(p<1)requestAnimationFrame(f);})(t0);
+}
+
+/* ---- modern animated toast ---- */
+function toast(msg,type){
+  type=type||'info';
+  if(type==='ok')sfx.success();else if(type==='err')sfx.error();else sfx.pop();
+  const stack=$('toasts');
+  while(stack.children.length>=3) stack.firstChild.remove();
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML='<span class="t-ico">'+ICONS[type]+'</span><span></span><span class="t-bar"></span>';
+  t.children[1].textContent=msg;
+  let dead=false;
+  const kill=()=>{ if(dead)return; dead=true; t.classList.add('hide');
+    setTimeout(()=>t.remove(),300); };
+  t.onclick=kill;
+  stack.appendChild(t);
+  setTimeout(kill,3400);
+}
+
+async function api(path,method,body){
+  progStart();
+  try{
+    const r=await fetch(path,{method:method||'GET',
+      headers:Object.assign({'Authorization':'Bearer '+token()},
+        body?{'Content-Type':'application/json'}:{}),
+      body:body?JSON.stringify(body):undefined});
+    if(r.status===401){doLogout();throw new Error('Session expired — please sign in');}
+    const j=await r.json().catch(()=>({}));
+    if(!j.ok)throw new Error(j.error||'Request failed');
+    return j;
+  }finally{progDone();}
+}
+function fmtDate(ts){if(!ts)return'—';const d=new Date(ts);
+  return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function expText(ts){if(!ts)return'<span class="badge active">lifetime</span>';
+  return Date.now()>ts?'<span class="badge expired">expired</span>':fmtDate(ts);}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,
+  c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---- view switching ---- */
+function showLogin(){
+  $('loginView').style.display='block';$('appView').style.display='none';
+  document.title='KMJ TIPS — Admin Login';
+}
+function showApp(){
+  $('loginView').style.display='none';$('appView').style.display='block';
+  document.title='KMJ TIPS — Admin Panel';
+  $('userLabel').textContent=sessionStorage.getItem('kmj_user')||'admin';
+  loadDashboard();
+}
+function doLogout(){sessionStorage.clear();showLogin();}
+$('logoutBtn').onclick=doLogout;
+
+/* ---- theme ---- */
+function syncThemeBtn(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  $('themeLabel').textContent=dark?'Light Mode':'Dark Mode';
+  $('themeToggle').querySelector('.ico').textContent=dark?'☀️':'🌙';
+  const lb=$('themeBtnLogin'); if(lb)lb.textContent=dark?'☀️':'🌙';
+  if(chart)drawChart(lastChartData);
+}
+function syncSoundBtn(){
+  const m=sfx.isMuted();
+  $('soundLabel').textContent=m?'Sound Off':'Sound On';
+  $('soundToggle').querySelector('.ico').textContent=m?'🔇':'🔊';
+}
+$('soundToggle').onclick=()=>{const m=sfx.toggleMute();syncSoundBtn();if(!m)sfx.toggle();};
+function toggleTheme(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dark?'':'dark');
+  try{localStorage.setItem('kmj_theme',dark?'light':'dark');}catch(e){}
+  syncThemeBtn();sfx.toggle();
+}
+$('themeToggle').onclick=toggleTheme;
+$('themeBtnLogin').onclick=toggleTheme;
+
+/* ---- login / setup ---- */
+$('toggleSetup').onclick=()=>{
+  const s=$('setupForm'),l=$('loginForm'),show=s.style.display==='none';
+  s.style.display=show?'block':'none';l.style.display=show?'none':'block';
+  $('toggleSetup').textContent=show?'Back to login':'First run? Create admin account';
+};
+$('loginForm').onsubmit=async e=>{
+  e.preventDefault();const btn=$('loginBtn');btnBusy(btn,true,'Signing in…');
+  try{
+    const r=await fetch('/api/admin/login',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:$('username').value,password:$('password').value})});
+    const j=await r.json();
+    if(!j.ok)throw new Error(j.error||'Login failed');
+    sessionStorage.setItem('kmj_token',j.token);
+    sessionStorage.setItem('kmj_user',j.username);
+    $('password').value='';
+    toast('Welcome back, '+j.username,'ok');
+    showApp();
+  }catch(err){toast(err.message,'err');}
+  btnBusy(btn,false);
+};
+$('setupForm').onsubmit=async e=>{
+  e.preventDefault();const btn=$('setupBtn');btnBusy(btn,true,'Creating…');
+  try{
+    const r=await fetch('/api/admin/setup',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:$('su').value,password:$('sp').value})});
+    const j=await r.json();
+    if(!j.ok)throw new Error(j.error||'Setup failed');
+    toast('Admin created — please sign in','ok');
+    $('toggleSetup').click();
+  }catch(err){toast(err.message,'err');}
+  btnBusy(btn,false);
+};
+
+/* ---- navigation ---- */
+const TITLES={dashboard:['Dashboard','Overview of keys & app updates'],
+  keys:['Activation Keys','Generate, verify lifecycle, revoke & export'],
+  updates:['App Updates','Publish releases the Android SDK will pick up'],
+  settings:['Settings','Panel preferences & security']};
+document.querySelectorAll('.nav-link[data-view]').forEach(btn=>{
+  btn.onclick=()=>{
+    sfx.click();
+    document.querySelectorAll('.nav-link[data-view]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const v=btn.dataset.view;
+    ['dashboard','keys','updates','settings'].forEach(k=>{
+      $('view-'+k).style.display=k===v?'block':'none';});
+    $('viewTitle').textContent=TITLES[v][0];
+    $('viewSub').textContent=TITLES[v][1];
+    $('sidebar').classList.remove('open');$('scrim').classList.remove('show');
+    if(v==='dashboard')loadDashboard();
+    if(v==='keys')loadKeys();
+    if(v==='updates')loadUpdateForm();
+  };
+});
+$('hamburger').onclick=()=>{$('sidebar').classList.add('open');$('scrim').classList.add('show');};
+$('scrim').onclick=()=>{$('sidebar').classList.remove('open');$('scrim').classList.remove('show');};
+
+/* ---- dashboard ---- */
+let chart=null,lastChartData=null;
+function drawChart(d){
+  lastChartData=d;
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const grid=dark?'rgba(255,255,255,.08)':'rgba(15,23,42,.08)';
+  const tick=dark?'#94a3b8':'#64748b';
+  if(chart)chart.destroy();
+  chart=new Chart($('activityChart'),{type:'bar',
+    data:{labels:d.days,datasets:[
+      {label:'Created',data:d.created,backgroundColor:'#4f46e5',borderRadius:5},
+      {label:'Verified',data:d.verified,backgroundColor:'#16a34a',borderRadius:5}]},
+    options:{responsive:true,
+      plugins:{legend:{labels:{color:tick,boxWidth:12}}},
+      scales:{x:{ticks:{color:tick,maxTicksLimit:7},grid:{display:false}},
+              y:{beginAtZero:true,ticks:{color:tick,precision:0},grid:{color:grid}}}}});
+}
+async function loadDashboard(){
+  try{
+    const j=await api('/api/admin/stats'),k=j.keys;
+    const cards=[['c-purple','🔑',k.total,'Total Keys'],['c-green','✅',k.active,'Active Keys'],
+      ['c-blue','📱',k.used,'Used Keys'],['c-amber','⌛',k.expired,'Expired Keys'],
+      ['c-red','🚫',k.revoked,'Revoked Keys'],
+      ['c-green','📦','v'+j.current_version.version_name,'Current Version ('+j.current_version.version_code+')']];
+    $('statGrid').innerHTML=cards.map(c=>
+      '<div class="stat-card glass '+c[0]+'"><div class="stat-ico">'+c[1]+'</div>'+
+      '<div class="stat-num" data-count="'+c[2]+'">0</div><div class="stat-label">'+c[3]+'</div></div>').join('');
+    document.querySelectorAll('#statGrid .stat-num').forEach(el=>{
+      const v=el.getAttribute('data-count');
+      if(/^[0-9]+$/.test(v))countUp(el,parseInt(v,10));else el.textContent=v;
+    });
+    $('versionCard').innerHTML=
+      '<div style="display:flex;align-items:center;gap:12px"><div class="logo" style="width:52px;height:52px;font-size:22px">📦</div>'+
+      '<div><div style="font-size:20px;font-weight:800">v'+j.current_version.version_name+'</div>'+
+      '<div style="color:var(--muted);font-size:13px">versionCode '+j.current_version.version_code+
+      (j.current_version.force_update?' • <span class="badge revoked">force update</span>':'')+'</div></div></div>';
+    const dots={created:'#4f46e5',verified:'#16a34a',revoked:'#dc2626'};
+    $('recentList').innerHTML=j.recent_activity.length?j.recent_activity.map(e=>
+      '<div class="activity-item"><span class="dot" style="background:'+(dots[e.event]||'#64748b')+'"></span>'+
+      '<span><b>'+e.event+'</b> <span class="key-mono">'+e.key.slice(0,18)+'…</span></span>'+
+      '<small>'+fmtDate(e.created_at)+'</small></div>').join('')
+      :'<div class="empty">No activity yet.</div>';
+    drawChart(j.chart);
+  }catch(e){toast(e.message,'err');}
+}
+
+/* ---- keys ---- */
+let keyPage=0;const PAGE_SIZE=20;
+async function loadKeys(){
+  try{
+    const q=encodeURIComponent($('keySearch').value.trim()),st=$('keyFilter').value;
+    const j=await api('/api/admin/keys?limit='+PAGE_SIZE+'&offset='+(keyPage*PAGE_SIZE)+'&q='+q+'&status='+st);
+    $('keyEmpty').style.display=j.keys.length?'none':'block';
+    $('keyRows').innerHTML=j.keys.map(r=>
+      '<tr><td><span class="key-mono">'+r.key+'</span> '+
+      '<button class="btn ghost small" style="margin-left:6px" onclick="copyKey(\''+r.key+'\')">📋</button></td>'+
+      '<td>'+(escapeHtml(r.label)||'<span style="color:var(--muted)">—</span>')+'</td>'+
+      '<td><span class="badge '+r.status+'">'+r.status+'</span>'+(r.single_use?' 🔒':'')+'</td>'+
+      '<td style="white-space:nowrap">'+expText(r.expires_at)+'</td><td>'+r.use_count+'</td>'+
+      '<td style="white-space:nowrap">'+fmtDate(r.created_at)+'</td>'+
+      '<td><div class="row-actions">'+
+      (r.status!=='revoked'?'<button class="btn ghost small" onclick="revokeKey('+r.id+')">Revoke</button>':'')+
+      '<button class="btn danger small" onclick="deleteKey('+r.id+')">Delete</button></div></td></tr>').join('');
+    const pages=Math.max(1,Math.ceil(j.total/PAGE_SIZE));
+    $('pageInfo').textContent='Page '+(keyPage+1)+' of '+pages+' ('+j.total+' keys)';
+    $('prevPage').disabled=keyPage===0;$('nextPage').disabled=keyPage+1>=pages;
+  }catch(e){toast(e.message,'err');}
+}
+window.copyKey=k=>{
+  (navigator.clipboard?navigator.clipboard.writeText(k):Promise.reject())
+    .then(()=>toast('Key copied to clipboard','ok'))
+    .catch(()=>{prompt('Copy key:',k);});
+};
+window.revokeKey=async id=>{
+  if(!confirm('Revoke this key? Devices will fail verification immediately.'))return;
+  try{await api('/api/admin/keys/'+id+'/revoke','POST');toast('Key revoked','ok');loadKeys();}
+  catch(e){toast(e.message,'err');}
+};
+window.deleteKey=async id=>{
+  if(!confirm('Delete this key permanently?'))return;
+  try{await api('/api/admin/keys/'+id,'DELETE');toast('Key deleted','ok');loadKeys();}
+  catch(e){toast(e.message,'err');}
+};
+let searchTimer=null;
+$('keySearch').oninput=()=>{clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>{keyPage=0;loadKeys();},350);};
+$('keyFilter').onchange=()=>{keyPage=0;loadKeys();};
+$('prevPage').onclick=()=>{if(keyPage>0){keyPage--;loadKeys();}};
+$('nextPage').onclick=()=>{keyPage++;loadKeys();};
+$('exportBtn').onclick=async()=>{
+  try{
+    const r=await fetch('/api/admin/keys/export',{headers:{'Authorization':'Bearer '+token()}});
+    if(!r.ok)throw new Error('Export failed');
+    const blob=await r.blob(),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='kmj-keys-export.csv';a.click();
+    URL.revokeObjectURL(a.href);toast('Keys exported','ok');
+  }catch(e){toast(e.message,'err');}
+};
+$('genBtn').onclick=()=>{$('genResult').innerHTML='';$('genModal').classList.add('open');};
+$('genCancel').onclick=()=>$('genModal').classList.remove('open');
+$('genModal').addEventListener('click',e=>{if(e.target===$('genModal'))$('genModal').classList.remove('open');});
+$('genConfirm').onclick=async()=>{
+  const btn=$('genConfirm');btnBusy(btn,true,'Generating…');
+  const meter=$('genMeter'),bar=meter.querySelector('i');
+  meter.classList.add('show');bar.style.width='15%';
+  const tick=setInterval(()=>{bar.style.width=Math.min(90,parseFloat(bar.style.width)+12)+'%';},180);
+  try{
+    const exp=$('g_expiry').value;
+    const j=await api('/api/admin/keys','POST',{prefix:$('g_prefix').value,
+      label:$('g_label').value,count:parseInt($('g_count').value,10)||1,
+      expiry_days:exp==='lifetime'?null:parseInt(exp,10),single_use:$('g_single').checked});
+    clearInterval(tick);bar.style.width='100%';
+    setTimeout(()=>meter.classList.remove('show'),500);
+    $('genResult').innerHTML=j.keys.map(k=>
+      '<div style="display:flex;align-items:center;gap:8px;margin:6px 0">'+
+      '<span class="key-mono" style="flex:1">'+k.key+'</span>'+
+      '<button class="btn ghost small" onclick="copyKey(\''+k.key+'\')">📋 Copy</button></div>').join('');
+    toast(j.generated+' key(s) generated','ok');loadKeys();
+  }catch(e){clearInterval(tick);meter.classList.remove('show');toast(e.message,'err');}
+  btnBusy(btn,false);
+};
+
+/* ---- updates ---- */
+function updatePreviewJson(){
+  const j={latest_version:$('u_version_name').value||'1.0.0',
+    version_code:parseInt($('u_version_code').value,10)||0,
+    update_available:!!$('u_download_url').value.trim(),
+    force_update:$('u_force').checked,
+    title:$('u_title').value||'New Update Available',
+    changelog:$('u_changelog').value||'Bug fixes and improvements',
+    download_url:$('u_download_url').value};
+  if($('u_website_url').value.trim())j.website_url=$('u_website_url').value.trim();
+  $('updatePreview').textContent=JSON.stringify(j,null,2);
+}
+['u_version_name','u_version_code','u_title','u_changelog','u_download_url','u_website_url']
+  .forEach(id=>$(id).addEventListener('input',updatePreviewJson));
+$('u_force').addEventListener('change',updatePreviewJson);
+async function loadUpdateForm(){
+  try{
+    const j=await api('/api/admin/update'),u=j.update;
+    $('u_version_name').value=u.version_name;$('u_version_code').value=u.version_code;
+    $('u_title').value=u.title;$('u_changelog').value=u.changelog;
+    $('u_download_url').value=u.download_url;$('u_website_url').value=u.website_url||'';
+    $('u_force').checked=u.force_update===1;updatePreviewJson();
+  }catch(e){toast(e.message,'err');}
+}
+$('saveUpdateBtn').onclick=async()=>{
+  const btn=$('saveUpdateBtn');btnBusy(btn,true,'Publishing…');
+  try{
+    await api('/api/admin/update','PUT',{version_name:$('u_version_name').value.trim(),
+      version_code:parseInt($('u_version_code').value,10),title:$('u_title').value.trim(),
+      changelog:$('u_changelog').value,download_url:$('u_download_url').value.trim(),
+      website_url:$('u_website_url').value.trim(),force_update:$('u_force').checked});
+    toast('Update published successfully','ok');
+  }catch(e){toast(e.message,'err');}
+  btnBusy(btn,false);
+};
+$('copyJsonBtn').onclick=()=>{
+  const t=$('updatePreview').textContent;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject())
+    .then(()=>toast('JSON copied','ok')).catch(()=>prompt('Copy JSON:',t));
+};
+
+/* ---- settings ---- */
+$('pwBtn').onclick=async()=>{
+  const btn=$('pwBtn');btnBusy(btn,true,'Updating…');
+  try{
+    await api('/api/admin/change-password','POST',
+      {current_password:$('pw_cur').value,new_password:$('pw_new').value});
+    $('pw_cur').value='';$('pw_new').value='';
+    toast('Password changed','ok');
+  }catch(e){toast(e.message,'err');}
+  btnBusy(btn,false);
+};
+
+/* ---- init ---- */
+syncThemeBtn();syncSoundBtn();
+if(token()){showApp();}else{showLogin();}
+</script>
+</body>
+</html>
